@@ -1,0 +1,81 @@
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+
+const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cors());
+
+const Blog = require("./models/blog.model.js");
+
+const PORT = 3001;
+
+app.get("/", (req, res) => {
+  res.end("Blog-X server is working");
+});
+
+app.get("/api/blogs", async (req, res) => {
+  try {
+    const blogs = await Blog.find({});
+    res.status(200).json(blogs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post("/api/blogs", async (req, res) => {
+  try {
+    const blog = await Blog.create(req.body);
+    res.status(200).json(blog);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.put("/api/blogs/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const blog = await Blog.findByIdAndUpdate(id, req.body);
+
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+    const updatedBlog = await Blog.findById(id);
+
+    res.status(200).json(updatedBlog);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.delete("/api/blogs/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const blog = await Blog.findByIdAndDelete(id);
+
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+    res.status(200).json({ message: "Blog deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+mongoose
+  .connect(
+    "mongodb+srv://sia212007:HeD83CELNDtgkfY6@cluster1.4qtdzlb.mongodb.net/Node-API?retryWrites=true&w=majority&appName=Cluster1"
+  )
+  .then(() => {
+    console.log("Connected to DB");
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch(() => {
+    console.log("Connection failed");
+  });
