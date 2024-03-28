@@ -17,7 +17,7 @@ exports.signup = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
     const candidate = await User.findOne({ email });
     if (candidate) {
@@ -31,6 +31,7 @@ exports.signup = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      role: role || "USER",
     });
 
     await user.save();
