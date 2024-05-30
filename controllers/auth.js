@@ -2,10 +2,12 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 
+const { secret } = require("../config");
+
 const User = require("../models/user.model");
 
 const generateAccessToken = (id) => {
-  return jwt.sign({ id }, `${process.env.JWT_SECRET}`, {
+  return jwt.sign({ id }, secret, {
     expiresIn: "24h",
   });
 };
