@@ -17,6 +17,11 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: "USER",
   },
+  blogs: {
+    type: [mongoose.Schema.Types.ObjectId],
+    default: [],
+    ref: "Blog"
+  }
 });
 
 const User = mongoose.model("User", UserSchema);

@@ -1,4 +1,5 @@
 const Blog = require("../models/blog.model");
+const User = require("../models/user.model");
 
 exports.getBlogs = async (req, res, next) => {
   try {
@@ -12,6 +13,17 @@ exports.getBlogs = async (req, res, next) => {
 exports.sendBlog = async (req, res, next) => {
   try {
     const blog = await Blog.create(req.body);
+    const user = await User.findById(req.user.id);
+
+    console.log(user);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.blogs.push(blog._id);
+    await user.save();
+
     res.status(200).json(blog);
   } catch (error) {
     res.status(500).json({ message: error.message });
