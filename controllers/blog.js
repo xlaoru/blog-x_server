@@ -15,8 +15,6 @@ exports.sendBlog = async (req, res, next) => {
     const blog = await Blog.create(req.body);
     const user = await User.findById(req.user.id);
 
-    console.log(user);
-
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -32,14 +30,26 @@ exports.sendBlog = async (req, res, next) => {
 
 exports.updateBlog = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const blog = await Blog.findByIdAndUpdate(id, req.body);
+    const user = await User.findById(req.user.id);
 
-    if (!blog) {
-      return res.status(404).json({ message: "Blog not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json(blog);
+    const { id } = req.params;
+    const isCorrectUser = user.blogs.includes(id);
+
+    if (!isCorrectUser) {
+      res.status(404).json({ message: "You are not allowed to update this blog" })
+    } else {
+      const blog = await Blog.findByIdAndUpdate(id, req.body);
+
+      if (!blog) {
+        return res.status(404).json({ message: "Blog not found" });
+      }
+
+      res.status(200).json(blog);
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -47,14 +57,26 @@ exports.updateBlog = async (req, res, next) => {
 
 exports.deleteBlog = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const blog = await Blog.findByIdAndDelete(id);
+    const user = await User.findById(req.user.id);
 
-    if (!blog) {
-      return res.status(404).json({ message: "Blog not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({ message: "Blog deleted successfully" });
+    const { id } = req.params;
+    const isCorrectUser = user.blogs.includes(id);
+
+    if (!isCorrectUser) {
+      res.status(404).json({ message: "You are not allowed to delete this blog" })
+    } else {
+      const blog = await Blog.findByIdAndDelete(id);
+
+      if (!blog) {
+        return res.status(404).json({ message: "Blog not found" });
+      }
+
+      res.status(200).json({ message: "Blog deleted successfully" });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
