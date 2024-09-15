@@ -75,6 +75,9 @@ exports.deleteBlog = async (req, res, next) => {
         return res.status(404).json({ message: "Blog not found" });
       }
 
+      user.blogs = user.blogs.filter((blogId) => blogId.toString() !== id);
+      await user.save();
+
       res.status(200).json({ message: "Blog deleted successfully" });
     }
   } catch (error) {
