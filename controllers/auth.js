@@ -62,7 +62,13 @@ exports.login = async (req, res) => {
     }
 
     const token = generateAccessToken(user._id);
-    return res.json({ token });
+
+    const userValidData = {
+      emial: user.email,
+      name: user.name,
+    }
+
+    return res.json({ token, userValidData });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ errors: [{ msg: "Login error." }] });
