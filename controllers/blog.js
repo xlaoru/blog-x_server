@@ -28,6 +28,33 @@ exports.sendBlog = async (req, res, next) => {
   }
 };
 
+exports.saveBlog = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { id } = req.params;
+    const isBlogSaved = user.savedBlogs.includes(id);
+
+    if (!isBlogSaved) {
+      user.savedBlogs.push(id);
+      await user.save();
+      res.status(200).json({ message: "Blog saved successfully" });
+    } else {
+      user.savedBlogs = user.savedBlogs.filter(
+        (savedBlogId) => savedBlogId.toString() !== id
+      );
+      await user.save();
+      res.status(200).json({ message: "Blog removed from saved" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 exports.updateBlog = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
