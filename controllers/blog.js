@@ -42,13 +42,13 @@ exports.saveBlog = async (req, res, next) => {
     if (!isBlogSaved) {
       user.savedBlogs.push(id);
       await user.save();
-      res.status(200).json({ message: "Blog saved successfully" });
+      res.status(200).json({ message: "Blog saved successfully", savedBlogs: user.savedBlogs });
     } else {
       user.savedBlogs = user.savedBlogs.filter(
         (savedBlogId) => savedBlogId.toString() !== id
       );
       await user.save();
-      res.status(200).json({ message: "Blog removed from saved" });
+      res.status(200).json({ message: "Blog removed from saved", savedBlogs: user.savedBlogs });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
