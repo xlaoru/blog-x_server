@@ -66,6 +66,7 @@ exports.login = async (req, res) => {
     const userValidData = {
       email: user.email,
       name: user.name,
+      savedBlogs: user.savedBlogs,
     }
 
     return res.json({ token, userValidData });

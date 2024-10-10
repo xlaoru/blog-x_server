@@ -106,6 +106,9 @@ exports.updateBlog = async (req, res, next) => {
 
 exports.deleteBlog = async (req, res, next) => {
   try {
+
+    /* Create logic for removing blog id of current blog in savedBlogs area */
+
     const user = await User.findById(req.user.id);
 
     if (!user) {
