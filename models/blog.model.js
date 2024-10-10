@@ -18,6 +18,10 @@ const BlogSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    isSaved: {
+      type: Boolean,
+      default: false,
+    }
   },
   {
     timestamps: true,
