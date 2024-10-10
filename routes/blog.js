@@ -12,7 +12,7 @@ const {
   saveBlog
 } = require("../controllers/blog.js");
 
-router.get("/api/blogs", getBlogs);
+router.get("/api/blogs", isAuth, getBlogs);
 
 router.post("/api/blogs", isAuth, sendBlog);
 

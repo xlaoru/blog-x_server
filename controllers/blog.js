@@ -1,9 +1,31 @@
+const jwt = require("jsonwebtoken");
+const { secret } = require("../config");
+
 const Blog = require("../models/blog.model");
 const User = require("../models/user.model");
 
 exports.getBlogs = async (req, res, next) => {
   try {
+    const token = req.headers.authorization.split(" ")[1];
+
+    const decodedData = jwt.verify(token, secret).id;
+
+    if (!decodedData) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await User.findById(decodedData);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     const blogs = await Blog.find({});
+
+    blogs.forEach((blog) => {
+      blog.isSaved = user.savedBlogs.includes(blog._id);
+    });
+
     res.status(200).json(blogs);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -42,13 +64,13 @@ exports.saveBlog = async (req, res, next) => {
     if (!isBlogSaved) {
       user.savedBlogs.push(id);
       await user.save();
-      res.status(200).json({ message: "Blog saved successfully", savedBlogs: user.savedBlogs });
+      res.status(200).json({ message: "Blog saved successfully" });
     } else {
       user.savedBlogs = user.savedBlogs.filter(
         (savedBlogId) => savedBlogId.toString() !== id
       );
       await user.save();
-      res.status(200).json({ message: "Blog removed from saved", savedBlogs: user.savedBlogs });
+      res.status(200).json({ message: "Blog removed from saved" });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
