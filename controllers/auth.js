@@ -64,8 +64,9 @@ exports.login = async (req, res) => {
     const token = generateAccessToken(user._id);
 
     const userValidData = {
-      emial: user.email,
+      email: user.email,
       name: user.name,
+      savedBlogs: user.savedBlogs, // ?!
     }
 
     return res.json({ token, userValidData });
