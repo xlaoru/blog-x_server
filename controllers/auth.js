@@ -69,7 +69,7 @@ exports.login = async (req, res) => {
       savedBlogs: user.savedBlogs,
     }
 
-    return res.json({ token, userValidData });
+    return res.json({ token, userValidData, message: "User logged in successfully." });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ errors: [{ msg: "Login error." }] });
