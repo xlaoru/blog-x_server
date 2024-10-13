@@ -106,9 +106,6 @@ exports.updateBlog = async (req, res, next) => {
 
 exports.deleteBlog = async (req, res, next) => {
   try {
-
-    /* Create logic for removing blog id of current blog in savedBlogs area */
-
     const user = await User.findById(req.user.id);
 
     if (!user) {
@@ -126,6 +123,11 @@ exports.deleteBlog = async (req, res, next) => {
       if (!blog) {
         return res.status(404).json({ message: "Blog not found" });
       }
+
+      await User.updateMany(
+        { savedBlogs: id },
+        { $pull: { savedBlogs: id } }
+      );
 
       user.blogs = user.blogs.filter((blogId) => blogId.toString() !== id);
       await user.save();
