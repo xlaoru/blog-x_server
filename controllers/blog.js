@@ -44,7 +44,7 @@ exports.sendBlog = async (req, res, next) => {
     user.blogs.push(blog._id);
     await user.save();
 
-    res.status(200).json(blog);
+    res.status(200).json({ blog, message: "Blog created successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -97,7 +97,7 @@ exports.updateBlog = async (req, res, next) => {
         return res.status(404).json({ message: "Blog not found" });
       }
 
-      res.status(200).json(blog);
+      res.status(200).json({ blog, message: "Blog updated successfully" });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
