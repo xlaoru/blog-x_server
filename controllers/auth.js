@@ -75,3 +75,19 @@ exports.login = async (req, res) => {
     return res.status(500).json({ errors: [{ msg: "Login error." }] });
   }
 };
+
+exports.getUser = async (req, res) => {
+  try {
+    const userData = await User.findById(req.user.id);
+    const user = {
+      email: userData.email,
+      name: userData.name,
+      blogAmount: userData.blogs.length,
+      savedBlogs: userData.savedBlogs
+    }
+    return res.json({ user, message: "User fetched successfully." });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ errors: [{ msg: "User not found." }] });
+  }
+};
