@@ -9,10 +9,13 @@ const {
   sendBlog,
   updateBlog,
   deleteBlog,
-  saveBlog
+  saveBlog,
+  getSavedBlogs
 } = require("../controllers/blog.js");
 
 router.get("/api/blogs", isAuth, getBlogs);
+
+router.get('/api/savedBlogs', isAuth, getSavedBlogs);
 
 router.post("/api/blogs", isAuth, sendBlog);
 

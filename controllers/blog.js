@@ -77,6 +77,35 @@ exports.saveBlog = async (req, res, next) => {
   }
 }
 
+exports.getSavedBlogs = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(" ")[1];
+
+    const decodedData = jwt.verify(token, secret).id;
+
+    if (!decodedData) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await User.findById(decodedData);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const blogs = await Blog.find({ _id: { $in: user.savedBlogs } });
+
+    const savedBlogs = blogs.map(blog => ({
+      ...blog._doc,
+      isSaved: true
+    }));
+
+    res.status(200).json({ blogs: savedBlogs, message: "Saved blogs fetched successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 exports.updateBlog = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
