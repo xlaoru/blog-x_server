@@ -86,12 +86,16 @@ exports.getUser = async (req, res) => {
     }
 
     const userBlogs = await Blog.find({ _id: { $in: user.blogs } });
+    const userBlogsArray = userBlogs.map(blog => ({
+      ...blog._doc,
+      isSaved: user.savedBlogs.includes(blog._id)
+    }))
 
     const userData = {
       email: user.email,
       name: user.name,
       bio: user.bio,
-      blogs: userBlogs,
+      blogs: userBlogsArray,
     }
 
     return res.json({ user: userData, message: "User fetched successfully." });
