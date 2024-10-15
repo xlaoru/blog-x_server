@@ -15,11 +15,11 @@ const {
 
 router.get("/api/blogs", isAuth, getBlogs);
 
-router.get('/api/savedBlogs', isAuth, getSavedBlogs);
+router.get('/api/blogs/saved', isAuth, getSavedBlogs);
 
 router.post("/api/blogs", isAuth, sendBlog);
 
-router.patch("/api/blogs/:id", isAuth, saveBlog);
+router.patch("/api/blogs/:id/save", isAuth, saveBlog);
 
 router.put("/api/blogs/:id", isAuth, updateBlog);
 
