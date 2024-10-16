@@ -118,7 +118,7 @@ exports.editUser = async (req, res) => {
 
     await user.save();
 
-    return res.json({ message: "User updated successfully." });
+    return res.json({ user, message: "User updated successfully." });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ errors: [{ msg: "User not found." }] });
