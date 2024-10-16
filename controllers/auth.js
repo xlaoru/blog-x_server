@@ -5,6 +5,7 @@ const { validationResult } = require("express-validator");
 const { secret } = require("../config");
 
 const User = require("../models/user.model");
+const Blog = require("../models/blog.model");
 
 const generateAccessToken = (id) => {
   return jwt.sign({ id }, secret, {
@@ -75,3 +76,51 @@ exports.login = async (req, res) => {
     return res.status(500).json({ errors: [{ msg: "Login error." }] });
   }
 };
+
+exports.getUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userBlogs = await Blog.find({ _id: { $in: user.blogs } });
+    const userBlogsArray = userBlogs.map(blog => ({
+      ...blog._doc,
+      isSaved: user.savedBlogs.includes(blog._id)
+    }))
+
+    const userData = {
+      email: user.email,
+      name: user.name,
+      bio: user.bio,
+      blogs: userBlogsArray,
+    }
+
+    return res.json({ user: userData, message: "User fetched successfully." });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ errors: [{ msg: "User not found." }] });
+  }
+};
+
+exports.editUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ errors: [{ msg: `User with email ${email} not found.` }] });
+    }
+
+    user.name = req.body.name || user.name;
+    user.bio = req.body.bio || user.bio;
+
+    await user.save();
+
+    return res.json({ user, message: "User updated successfully." });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ errors: [{ msg: "User not found." }] });
+  }
+}
