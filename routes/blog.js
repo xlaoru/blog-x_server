@@ -13,16 +13,16 @@ const {
   getSavedBlogs
 } = require("../controllers/blog.js");
 
-router.get("/api/blogs", isAuth, getBlogs);
+router.get("/blogs", isAuth, getBlogs);
 
-router.get('/api/blogs/saved', isAuth, getSavedBlogs);
+router.get('/blogs/saved', isAuth, getSavedBlogs);
 
-router.post("/api/blogs", isAuth, sendBlog);
+router.post("/blogs", isAuth, sendBlog);
 
-router.patch("/api/blogs/:id/save", isAuth, saveBlog);
+router.patch("/blogs/:id/save", isAuth, saveBlog);
 
-router.put("/api/blogs/:id", isAuth, updateBlog);
+router.put("/blogs/:id", isAuth, updateBlog);
 
-router.delete("/api/blogs/:id", isAuth, deleteBlog);
+router.delete("/blogs/:id", isAuth, deleteBlog);
 
 module.exports = router;

@@ -1,20 +1,9 @@
-const jwt = require("jsonwebtoken");
-const { secret } = require("../config");
-
 const Blog = require("../models/blog.model");
 const User = require("../models/user.model");
 
 exports.getBlogs = async (req, res, next) => {
   try {
-    const token = req.headers.authorization.split(" ")[1];
-
-    const decodedData = jwt.verify(token, secret).id;
-
-    if (!decodedData) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const user = await User.findById(decodedData);
+    const user = await User.findById(req.user.id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -79,15 +68,7 @@ exports.saveBlog = async (req, res, next) => {
 
 exports.getSavedBlogs = async (req, res, next) => {
   try {
-    const token = req.headers.authorization.split(" ")[1];
-
-    const decodedData = jwt.verify(token, secret).id;
-
-    if (!decodedData) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const user = await User.findById(decodedData);
+    const user = await User.findById(req.user.id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

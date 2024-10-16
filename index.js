@@ -17,7 +17,7 @@ app.get("/", (req, res) => {
   res.end("Blog-X server is working");
 });
 
-app.use(blogRoutes);
+app.use("/api", blogRoutes);
 app.use("/auth", authRoutes);
 
 app.use((error, req, res, next) => {
