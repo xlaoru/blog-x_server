@@ -93,6 +93,7 @@ exports.getUser = async (req, res) => {
 
     const userData = {
       email: user.email,
+      avatar: user.avatar,
       name: user.name,
       bio: user.bio,
       blogs: userBlogsArray,
@@ -115,6 +116,7 @@ exports.editUser = async (req, res) => {
 
     user.name = req.body.name || user.name;
     user.bio = req.body.bio || user.bio;
+    user.avatar = req.body.avatar || user.avatar;
 
     await user.save();
 
