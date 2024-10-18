@@ -21,7 +21,11 @@ const BlogSchema = new mongoose.Schema(
     isSaved: {
       type: Boolean,
       default: false,
-    }
+    },
+    commentsId: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comment"
+    }]
   },
   {
     timestamps: true,
