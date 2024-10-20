@@ -22,6 +22,10 @@ const BlogSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isEditable: {
+      type: Boolean,
+      default: false,
+    },
     commentsId: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: "Comment"

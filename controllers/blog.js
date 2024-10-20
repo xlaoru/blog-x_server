@@ -14,6 +14,7 @@ exports.getBlogs = async (req, res, next) => {
 
     blogs.forEach((blog) => {
       blog.isSaved = user.savedBlogs.includes(blog._id);
+      blog.isEditable = user.blogs.includes(blog._id);
     });
 
     res.status(200).json(blogs);
