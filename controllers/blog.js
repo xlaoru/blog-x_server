@@ -12,6 +12,8 @@ exports.getBlogs = async (req, res, next) => {
 
     const blogs = await Blog.find({});
 
+    /* Mark isVoted flag if user voted blog */
+
     blogs.forEach((blog) => {
       blog.isSaved = user.savedBlogs.includes(blog._id);
       blog.isEditable = user.blogs.includes(blog._id);
