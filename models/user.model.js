@@ -38,9 +38,19 @@ const UserSchema = new mongoose.Schema({
     ref: "Blog"
   },
   votedBlogs: {
-    type: [mongoose.Schema.Types.ObjectId],
-    default: [],
-    ref: "Blog"
+    type: [{
+      blogId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Blog"
+      },
+      vote: {
+        type: String,
+        enum: ["upvote", "downvote", "none"],
+        required: true,
+        default: "none"
+      }
+    }],
+    default: []
   }
 });
 

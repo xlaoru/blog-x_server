@@ -239,48 +239,40 @@ exports.sendVote = async (req, res, next) => {
       return res.status(404).json({ message: "Blog not found" });
     }
 
-    const hasVoted = user.votedBlogs.includes(id);
+    const votedBlog = user.votedBlogs.find(vote => vote.blogId.toString() === id);
 
-    if (!hasVoted) {
+    if (!votedBlog) {
       if (votetype === "upvote") {
         blog.upVotes.quantity += 1;
-        blog.upVotes.isVoted = true;
       } else if (votetype === "downvote") {
         blog.downVotes.quantity += 1;
-        blog.downVotes.isVoted = true;
       } else {
         return res.status(400).json({ message: "Invalid vote type" });
       }
 
-      user.votedBlogs.push(id);
-    } else if (hasVoted) {
-      if (votetype === "upvote" && !blog.upVotes.isVoted) {
-        blog.upVotes.quantity += 1;
-        blog.upVotes.isVoted = true;
+      user.votedBlogs.push({ blogId: id, vote: votetype });
+    } else {
+      if (votedBlog.vote === votetype) {
+        return res.status(400).json({ message: "You have already voted for this post" });
+      }
 
-        if (blog.downVotes.quantity === 0) {
-          blog.downVotes.quantity = 0;
-        } else {
-          blog.downVotes.quantity -= 1;
-        }
-        blog.downVotes.isVoted = false;
-      } else if (votetype === "downvote" && !blog.downVotes.isVoted) {
-        blog.downVotes.quantity += 1;
-        blog.downVotes.isVoted = true;
-
-        if (blog.upVotes.quantity === 0) {
-          blog.upVotes.quantity = 0;
-        } else {
+      if (votedBlog.vote === "upvote") {
+        if (blog.upVotes.quantity > 0) {
           blog.upVotes.quantity -= 1;
         }
-        blog.upVotes.isVoted = false;
-      } else {
-        return res.status(400).json({
-          message: "You have already voted for this post"
-        })
+      } else if (votedBlog.vote === "downvote") {
+        if (blog.downVotes.quantity > 0) {
+          blog.downVotes.quantity -= 1;
+        }
       }
-    } else {
-      return res.status(400).json({ message: "Trouble with blog vouting" });
+
+      if (votetype === "upvote") {
+        blog.upVotes.quantity += 1;
+      } else if (votetype === "downvote") {
+        blog.downVotes.quantity += 1;
+      }
+
+      votedBlog.vote = votetype;
     }
 
     await blog.save();
