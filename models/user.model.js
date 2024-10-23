@@ -36,6 +36,11 @@ const UserSchema = new mongoose.Schema({
     type: [mongoose.Schema.Types.ObjectId],
     default: [],
     ref: "Blog"
+  },
+  votedPosts: {
+    type: [mongoose.Schema.Types.ObjectId],
+    default: [],
+    ref: "Blog"
   }
 });
 
