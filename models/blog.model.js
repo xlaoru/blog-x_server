@@ -27,12 +27,24 @@ const BlogSchema = new mongoose.Schema(
       default: false,
     },
     upVotes: {
-      type: Number,
-      default: 0,
+      quantity: {
+        type: Number,
+        default: 0,
+      },
+      isVoted: {
+        type: Boolean,
+        default: false,
+      }
     },
     downVotes: {
-      type: Number,
-      default: 0,
+      quantity: {
+        type: Number,
+        default: 0,
+      },
+      isVoted: {
+        type: Boolean,
+        default: false,
+      }
     },
     commentsId: [{
       type: mongoose.Schema.Types.ObjectId,

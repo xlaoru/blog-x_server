@@ -117,6 +117,7 @@ exports.updateBlog = async (req, res, next) => {
 };
 
 exports.deleteBlog = async (req, res, next) => {
+  /* Write logic about deleting blogId from votedBlogs */
   try {
     const user = await User.findById(req.user.id);
 
@@ -238,59 +239,49 @@ exports.sendVote = async (req, res, next) => {
       return res.status(404).json({ message: "Blog not found" });
     }
 
-    const hasVoted = user.votedPosts.includes(id);
-
-    /* 
-    *  Если два раза зделать upvote/downvote, то счетчик вместо того, чтоб оставатся 
-    *  на месте - будет уменьшатся. А нужно, чтоб стоял на месте если повторный запрос шёл. 
-    */
+    const hasVoted = user.votedBlogs.includes(id);
 
     if (!hasVoted) {
       if (votetype === "upvote") {
-        blog.upVotes += 1;
+        blog.upVotes.quantity += 1;
+        blog.upVotes.isVoted = true;
       } else if (votetype === "downvote") {
-        blog.downVotes += 1;
+        blog.downVotes.quantity += 1;
+        blog.downVotes.isVoted = true;
       } else {
         return res.status(400).json({ message: "Invalid vote type" });
       }
 
-      user.votedPosts.push(id);
-    } else {
-      // TODO: Add logic here
-      /* 
-      * Create logic if you duplicate your vote => return "You have already voted for upvote/downvote" 
-      * Create logic if you want to switch your vote. (EX: You have already voted for upvote, but you want to switch to downvote) => return "You switched your vote for upvote/downvote"
-      */
-      return res.status(400).json({
-        message: "You have already voted for this post"
-      })
-    }
+      user.votedBlogs.push(id);
+    } else if (hasVoted) {
+      if (votetype === "upvote" && !blog.upVotes.isVoted) {
+        blog.upVotes.quantity += 1;
+        blog.upVotes.isVoted = true;
 
-    /* 
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    else if (hasVoted && votetype === "upvote") {
-      Ты уже голосовал за upvote
-      return res.status(400).json({ message: "You have already voted for upvote" });
-    } else if (hasVoted && votetype === "downvote") {
-      Ты уже голосовал за downvote
-      return res.status(400).json({ message: "You have already voted for downvote" });
-    }
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    */
+        if (blog.downVotes.quantity === 0) {
+          blog.downVotes.quantity = 0;
+        } else {
+          blog.downVotes.quantity -= 1;
+        }
+        blog.downVotes.isVoted = false;
+      } else if (votetype === "downvote" && !blog.downVotes.isVoted) {
+        blog.downVotes.quantity += 1;
+        blog.downVotes.isVoted = true;
 
-    /* 
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      if (votetype === 'downvote') {
-        blog.upVotes -= 1;
-        blog.downVotes += 1;
-      } else if (votetype === 'upvote') {
-        blog.downVotes -= 1;
-        blog.upVotes += 1;
+        if (blog.upVotes.quantity === 0) {
+          blog.upVotes.quantity = 0;
+        } else {
+          blog.upVotes.quantity -= 1;
+        }
+        blog.upVotes.isVoted = false;
       } else {
-        return res.status(400).json({ message: "Invalid vote type" });
-      } 
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    */
+        return res.status(400).json({
+          message: "You have already voted for this post"
+        })
+      }
+    } else {
+      return res.status(400).json({ message: "Trouble with blog vouting" });
+    }
 
     await blog.save();
     await user.save();
@@ -299,3 +290,5 @@ exports.sendVote = async (req, res, next) => {
     res.status(500).json({ message: error.message });
   }
 }
+
+/* Create GET request with UPVOTED and DOWNVOTED blogs response */

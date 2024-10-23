@@ -37,7 +37,7 @@ const UserSchema = new mongoose.Schema({
     default: [],
     ref: "Blog"
   },
-  votedPosts: {
+  votedBlogs: {
     type: [mongoose.Schema.Types.ObjectId],
     default: [],
     ref: "Blog"
