@@ -12,11 +12,11 @@ exports.getBlogs = async (req, res, next) => {
 
     const blogs = await Blog.find({});
 
-    /* Mark isVoted flag if user voted blog */
-
     blogs.forEach((blog) => {
       blog.isSaved = user.savedBlogs.includes(blog._id);
       blog.isEditable = user.blogs.includes(blog._id);
+      blog.upVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "upvote");
+      blog.downVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "downvote");
     });
 
     res.status(200).json(blogs);
@@ -144,6 +144,11 @@ exports.deleteBlog = async (req, res, next) => {
         { $pull: { savedBlogs: id } }
       );
 
+      await User.updateMany(
+        { "votedBlogs.blogId": id },
+        { $pull: { votedBlogs: { blogId: id } } }
+      );
+
       await Comment.deleteMany({ _id: { $in: blog.commentsId } });
 
       user.blogs = user.blogs.filter((blogId) => blogId.toString() !== id);
@@ -255,7 +260,7 @@ exports.sendVote = async (req, res, next) => {
       user.votedBlogs.push({ blogId: id, vote: votetype });
     } else {
       if (votedBlog.vote === votetype) {
-        return res.status(400).json({ message: "You have already voted for this post" });
+        return res.status(200).json({ message: "You have already voted for this post" });
       }
 
       if (votedBlog.vote === "upvote") {
@@ -285,4 +290,4 @@ exports.sendVote = async (req, res, next) => {
   }
 }
 
-/* Create GET request with UPVOTED and DOWNVOTED blogs response */
+/* Create GET request with user's UPVOTED and DOWNVOTED blogs response */
