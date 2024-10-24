@@ -240,6 +240,11 @@ exports.sendVote = async (req, res, next) => {
 
     const { id, votetype } = req.params;
 
+    const validVotes = ["upvote", "downvote"];
+    if (!validVotes.includes(votetype)) {
+      return res.status(400).json({ message: "Invalid vote type" });
+    }
+
     const blog = await Blog.findById(id);
 
     if (!blog) {
