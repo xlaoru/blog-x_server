@@ -119,7 +119,6 @@ exports.updateBlog = async (req, res, next) => {
 };
 
 exports.deleteBlog = async (req, res, next) => {
-  /* Write logic about deleting blogId from votedBlogs */
   try {
     const user = await User.findById(req.user.id);
 
@@ -289,7 +288,7 @@ exports.sendVote = async (req, res, next) => {
 
     await blog.save();
     await user.save();
-    res.status(200).json({ message: "Vote added successfully" });
+    res.status(200).json({ blog, message: "Vote added successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -24,7 +24,7 @@ router.get("/blogs/:id/comments", isAuth, getComments);
 
 router.post("/blogs", isAuth, sendBlog);
 
-router.post("/blogs/:id/vote/:votetype", isAuth, sendVote)
+router.patch("/blogs/:id/vote/:votetype", isAuth, sendVote)
 
 router.patch("/blogs/:id/save", isAuth, saveBlog);
 
