@@ -12,7 +12,8 @@ const {
   saveBlog,
   getSavedBlogs,
   addComment,
-  getComments
+  getComments,
+  sendVote
 } = require("../controllers/blog.js");
 
 router.get("/blogs", isAuth, getBlogs);
@@ -22,6 +23,8 @@ router.get('/blogs/saved', isAuth, getSavedBlogs);
 router.get("/blogs/:id/comments", isAuth, getComments);
 
 router.post("/blogs", isAuth, sendBlog);
+
+router.patch("/blogs/:id/vote/:votetype", isAuth, sendVote)
 
 router.patch("/blogs/:id/save", isAuth, saveBlog);
 

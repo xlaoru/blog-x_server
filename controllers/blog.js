@@ -15,6 +15,8 @@ exports.getBlogs = async (req, res, next) => {
     blogs.forEach((blog) => {
       blog.isSaved = user.savedBlogs.includes(blog._id);
       blog.isEditable = user.blogs.includes(blog._id);
+      blog.upVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "upvote");
+      blog.downVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "downvote");
     });
 
     res.status(200).json(blogs);
@@ -141,6 +143,11 @@ exports.deleteBlog = async (req, res, next) => {
         { $pull: { savedBlogs: id } }
       );
 
+      await User.updateMany(
+        { "votedBlogs.blogId": id },
+        { $pull: { votedBlogs: { blogId: id } } }
+      );
+
       await Comment.deleteMany({ _id: { $in: blog.commentsId } });
 
       user.blogs = user.blogs.filter((blogId) => blogId.toString() !== id);
@@ -221,3 +228,70 @@ exports.getComments = async (req, res, next) => {
     res.status(500).json({ message: error.message });
   }
 }
+
+exports.sendVote = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { id, votetype } = req.params;
+
+    const validVotes = ["upvote", "downvote"];
+    if (!validVotes.includes(votetype)) {
+      return res.status(400).json({ message: "Invalid vote type" });
+    }
+
+    const blog = await Blog.findById(id);
+
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+    const votedBlog = user.votedBlogs.find(vote => vote.blogId.toString() === id);
+
+    if (!votedBlog) {
+      if (votetype === "upvote") {
+        blog.upVotes.quantity += 1;
+      } else if (votetype === "downvote") {
+        blog.downVotes.quantity += 1;
+      } else {
+        return res.status(400).json({ message: "Invalid vote type" });
+      }
+
+      user.votedBlogs.push({ blogId: id, vote: votetype });
+    } else {
+      if (votedBlog.vote === votetype) {
+        return res.status(200).json({ message: "You have already voted for this post" });
+      }
+
+      if (votedBlog.vote === "upvote") {
+        if (blog.upVotes.quantity > 0) {
+          blog.upVotes.quantity -= 1;
+        }
+      } else if (votedBlog.vote === "downvote") {
+        if (blog.downVotes.quantity > 0) {
+          blog.downVotes.quantity -= 1;
+        }
+      }
+
+      if (votetype === "upvote") {
+        blog.upVotes.quantity += 1;
+      } else if (votetype === "downvote") {
+        blog.downVotes.quantity += 1;
+      }
+
+      votedBlog.vote = votetype;
+    }
+
+    await blog.save();
+    await user.save();
+    res.status(200).json({ blog, message: "Vote added successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+/* Create GET request with user's UPVOTED and DOWNVOTED blogs response */
