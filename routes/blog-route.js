@@ -1,8 +1,7 @@
-const express = require("express");
+const Router = require("express");
+const router = new Router();
 
-const router = express.Router();
-
-const isAuth = require("../middleware/is-auth");
+const isAuth = require("../middleware/is-auth.js");
 
 const {
   getBlogs,
@@ -14,7 +13,7 @@ const {
   addComment,
   getComments,
   sendVote
-} = require("../controllers/blog.js");
+} = require("../controllers/blog-controller.js");
 
 router.get("/blogs", isAuth, getBlogs);
 

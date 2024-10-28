@@ -3,7 +3,7 @@ const router = new Router();
 
 const isAuth = require("../middleware/is-auth");
 
-const { signup, login, getUser, editUser } = require("../controllers/auth");
+const { signup, login, getUser, editUser } = require("../controllers/auth-controller");
 
 router.post("/signup", signup);
 
