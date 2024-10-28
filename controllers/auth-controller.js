@@ -78,7 +78,7 @@ exports.login = async (req, res) => {
 
 exports.refreshToken = async (req, res) => {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
       return res.status(403).json({ errors: [{ msg: "Refresh token not provided." }] });
@@ -98,7 +98,7 @@ exports.refreshToken = async (req, res) => {
       sameSite: 'strict',
     });
 
-    return res.status(500).json({ token: tokens.accessToken, message: "Token refreshed successfully." });
+    return res.json({ token: tokens.accessToken, message: "Token refreshed successfully." });
   } catch (error) {
     console.log(error);
     res.status(500).json({ errors: [{ msg: "Token refresh error." }] });
