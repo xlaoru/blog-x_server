@@ -1,7 +1,6 @@
-const jwt = require("jsonwebtoken");
-const { secret } = require("../config");
+const { validateAccessToken } = require('../service/token-service');
 
-module.exports = function (req, res, next) {
+module.exports = async function (req, res, next) {
   if (req.method === "OPTIONS") {
     return next();
   }
@@ -17,7 +16,7 @@ module.exports = function (req, res, next) {
       return res.status(403).json({ message: "Auth error: no token provided." });
     }
 
-    const decodedData = jwt.verify(token, secret);
+    const decodedData = await validateAccessToken(token);
     req.user = decodedData;
 
     next();
