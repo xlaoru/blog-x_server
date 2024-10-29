@@ -17,6 +17,11 @@ module.exports = async function (req, res, next) {
     }
 
     const decodedData = await validateAccessToken(token);
+
+    if (!decodedData) {
+      return res.status(403).json({ message: "Auth error: token verification failed." });
+    }
+
     req.user = decodedData;
 
     next();
