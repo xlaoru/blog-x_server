@@ -82,7 +82,15 @@ exports.getSavedBlogs = async (req, res, next) => {
 
     const savedBlogs = blogs.map(blog => ({
       ...blog._doc,
-      isSaved: true
+      isSaved: true,
+      upVotes: {
+        quantity: blog.upVotes.quantity,
+        isVoted: user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "upvote")
+      },
+      downVotes: {
+        quantity: blog.downVotes.quantity,
+        isVoted: user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "downvote")
+      }
     }));
 
     res.status(200).json({ blogs: savedBlogs, message: "Saved blogs fetched successfully" });

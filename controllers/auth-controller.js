@@ -114,10 +114,22 @@ exports.getUser = async (req, res) => {
     }
 
     const userBlogs = await Blog.find({ _id: { $in: user.blogs } });
-    const userBlogsArray = userBlogs.map(blog => ({
-      ...blog._doc,
-      isSaved: user.savedBlogs.includes(blog._id)
-    }))
+    const userBlogsArray = userBlogs.map(blog => {
+      const upVote = user.votedBlogs.find(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "upvote");
+      const downVote = user.votedBlogs.find(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "downvote");
+      return {
+        ...blog._doc,
+        isSaved: user.savedBlogs.includes(blog._id),
+        upVotes: {
+          quantity: blog.upVotes.quantity,
+          isVoted: !!upVote
+        },
+        downVotes: {
+          quantity: blog.downVotes.quantity,
+          isVoted: !!downVote
+        }
+      }
+    })
 
     const userData = {
       email: user.email,
