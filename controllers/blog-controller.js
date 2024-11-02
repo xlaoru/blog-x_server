@@ -237,8 +237,18 @@ exports.getComments = async (req, res, next) => {
   }
 }
 
+const voteLock = new Set();
+
 exports.sendVote = async (req, res, next) => {
   try {
+    const userId = req.user.id;
+
+    if (voteLock.has(userId)) {
+      return res.status(429).json({ message: "Too many requests. Please try again later." });
+    }
+
+    voteLock.add(userId);
+
     const user = await User.findById(req.user.id);
 
     if (!user) {
@@ -258,48 +268,44 @@ exports.sendVote = async (req, res, next) => {
       return res.status(404).json({ message: "Blog not found" });
     }
 
-    const votedBlog = user.votedBlogs.find(vote => vote.blogId.toString() === id);
+    const existingVote = user.votedBlogs.find(vote => vote.blogId.toString() === id);
 
-    if (!votedBlog) {
-      if (votetype === "upvote") {
-        blog.upVotes.quantity += 1;
-      } else if (votetype === "downvote") {
-        blog.downVotes.quantity += 1;
-      } else {
-        return res.status(400).json({ message: "Invalid vote type" });
-      }
-
-      user.votedBlogs.push({ blogId: id, vote: votetype });
-    } else {
-      if (votedBlog.vote === votetype) {
-        return res.status(200).json({ message: "You have already voted for this post" });
-      }
-
-      if (votedBlog.vote === "upvote") {
-        if (blog.upVotes.quantity > 0) {
+    if (existingVote) {
+      if (existingVote.vote === votetype) {
+        user.votedBlogs = user.votedBlogs.filter(vote => vote.blogId.toString() !== id);
+        if (votetype === "upvote") {
           blog.upVotes.quantity -= 1;
-        }
-      } else if (votedBlog.vote === "downvote") {
-        if (blog.downVotes.quantity > 0) {
+        } else {
           blog.downVotes.quantity -= 1;
         }
+      } else {
+        existingVote.vote = votetype;
+        if (votetype === "upvote") {
+          blog.upVotes.quantity += 1;
+          blog.downVotes.quantity -= 1;
+        } else {
+          blog.downVotes.quantity += 1;
+          blog.upVotes.quantity -= 1;
+        }
       }
-
+    } else {
+      user.votedBlogs.push({ blogId: id, vote: votetype });
       if (votetype === "upvote") {
         blog.upVotes.quantity += 1;
-      } else if (votetype === "downvote") {
+      } else {
         blog.downVotes.quantity += 1;
       }
-
-      votedBlog.vote = votetype;
     }
 
     await blog.save();
     await user.save();
-    res.status(200).json({ blog, message: "Vote added successfully" });
+
+    voteLock.delete(userId);
+
+    res.status(200).json({ blog, message: "Vote processed successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-}
+};
 
 /* Create GET request with user's UPVOTED and DOWNVOTED blogs response */
