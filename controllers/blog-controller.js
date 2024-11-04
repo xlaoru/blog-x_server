@@ -237,18 +237,8 @@ exports.getComments = async (req, res, next) => {
   }
 }
 
-const voteLock = new Set();
-
 exports.sendVote = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-
-    if (voteLock.has(userId)) {
-      return res.status(429).json({ message: "Too many requests. Please try again later." });
-    }
-
-    voteLock.add(userId);
-
     const user = await User.findById(req.user.id);
 
     if (!user) {
@@ -258,6 +248,7 @@ exports.sendVote = async (req, res, next) => {
     const { id, votetype } = req.params;
 
     const validVotes = ["upvote", "downvote"];
+
     if (!validVotes.includes(votetype)) {
       return res.status(400).json({ message: "Invalid vote type" });
     }
@@ -275,7 +266,7 @@ exports.sendVote = async (req, res, next) => {
         user.votedBlogs = user.votedBlogs.filter(vote => vote.blogId.toString() !== id);
         if (votetype === "upvote") {
           blog.upVotes.quantity -= 1;
-        } else {
+        } else { // downvote
           blog.downVotes.quantity -= 1;
         }
       } else {
@@ -292,7 +283,7 @@ exports.sendVote = async (req, res, next) => {
       user.votedBlogs.push({ blogId: id, vote: votetype });
       if (votetype === "upvote") {
         blog.upVotes.quantity += 1;
-      } else {
+      } else { // downvote
         blog.downVotes.quantity += 1;
       }
     }
@@ -303,8 +294,6 @@ exports.sendVote = async (req, res, next) => {
     res.status(200).json({ blog, message: "Vote processed successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
-  } finally {
-    voteLock.delete(req.user.id);
   }
 };
 
