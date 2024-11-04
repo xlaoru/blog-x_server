@@ -300,11 +300,11 @@ exports.sendVote = async (req, res, next) => {
     await blog.save();
     await user.save();
 
-    voteLock.delete(userId);
-
     res.status(200).json({ blog, message: "Vote processed successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  } finally {
+    voteLock.delete(req.user.id);
   }
 };
 
