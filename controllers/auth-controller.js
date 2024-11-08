@@ -1,17 +1,10 @@
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 
-const { secret } = require("../config");
+const { generateTokens, validateRefreshToken } = require('../service/token-service');
 
 const User = require("../models/user.model");
 const Blog = require("../models/blog.model");
-
-const generateAccessToken = (id) => {
-  return jwt.sign({ id }, secret, {
-    expiresIn: "24h",
-  });
-};
 
 exports.signup = async (req, res) => {
   try {
@@ -62,7 +55,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ errors: [{ msg: "Incorrect password." }] });
     }
 
-    const token = generateAccessToken(user._id);
+    const tokens = await generateTokens({ id: user._id });
 
     const userValidData = {
       avatar: user.avatar,
@@ -71,12 +64,46 @@ exports.login = async (req, res) => {
       savedBlogs: user.savedBlogs,
     }
 
-    return res.json({ token, userValidData, message: "User logged in successfully." });
+    res.cookie("refreshToken", tokens.refreshToken, {
+      httpOnly: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000
+    });
+
+    return res.json({ token: tokens.accessToken, userValidData, message: "User logged in successfully." });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ errors: [{ msg: "Login error." }] });
   }
 };
+
+exports.refreshToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(403).json({ errors: [{ msg: "Refresh token not provided." }] });
+    }
+
+    const userData = await validateRefreshToken(refreshToken);
+
+    if (!userData) {
+      return res.status(403).json({ errors: [{ msg: "Invalid refresh token." }] });
+    }
+
+    const tokens = await generateTokens({ id: userData.id });
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+
+    return res.json({ token: tokens.accessToken, message: "Token refreshed successfully." });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ errors: [{ msg: "Token refresh error." }] });
+  }
+}
 
 exports.getUser = async (req, res) => {
   try {
@@ -87,10 +114,22 @@ exports.getUser = async (req, res) => {
     }
 
     const userBlogs = await Blog.find({ _id: { $in: user.blogs } });
-    const userBlogsArray = userBlogs.map(blog => ({
-      ...blog._doc,
-      isSaved: user.savedBlogs.includes(blog._id)
-    }))
+    const userBlogsArray = userBlogs.map(blog => {
+      const upVote = user.votedBlogs.find(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "upvote");
+      const downVote = user.votedBlogs.find(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "downvote");
+      return {
+        ...blog._doc,
+        isSaved: user.savedBlogs.includes(blog._id),
+        upVotes: {
+          quantity: blog.upVotes.quantity,
+          isVoted: !!upVote
+        },
+        downVotes: {
+          quantity: blog.downVotes.quantity,
+          isVoted: !!downVote
+        }
+      }
+    })
 
     const userData = {
       email: user.email,
