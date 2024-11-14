@@ -2,6 +2,8 @@ const Blog = require("../models/blog.model");
 const User = require("../models/user.model");
 const Comment = require("../models/comment.model");
 
+const tagsList = require("../utils/tagsList");
+
 exports.getBlogs = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -19,14 +21,7 @@ exports.getBlogs = async (req, res, next) => {
       blog.downVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "downvote");
     });
 
-    const tags = blogs.reduce((acc, blog) => {
-      blog.tags.forEach(tag => {
-        if (!acc.includes(tag)) {
-          acc.push(tag);
-        }
-      });
-      return acc;
-    }, []);
+    const tags = tagsList
 
     res.status(200).json({ blogs, tags, message: "Blogs fetched successfully" });
   } catch (error) {
