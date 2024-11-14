@@ -43,6 +43,35 @@ exports.sendBlog = async (req, res, next) => {
   }
 };
 
+exports.getBlogsByTags = async (req, res, next) => {
+  const { tags } = req.body;
+
+  if (tags.length === 0) {
+    return res.status(400).json({ message: "No tags provided" });
+  }
+
+  const user = await User.findById(req.user.id);
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const blogs = await Blog.find({ tags: { $all: tags } });
+
+  if (blogs.length === 0) {
+    return res.status(404).json({ message: "No blogs found with the provided tags" });
+  }
+
+  blogs.forEach((blog) => {
+    blog.isSaved = user.savedBlogs.includes(blog._id);
+    blog.isEditable = user.blogs.includes(blog._id);
+    blog.upVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "upvote");
+    blog.downVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "downvote");
+  });
+
+  res.status(200).json({ blogs, message: "Blogs with tags filtration fetched successfully" });
+}
+
 exports.saveBlog = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -296,5 +325,3 @@ exports.sendVote = async (req, res, next) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-/* Create GET request with user's UPVOTED and DOWNVOTED blogs response */

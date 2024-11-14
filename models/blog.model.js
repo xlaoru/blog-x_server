@@ -18,6 +18,15 @@ const BlogSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    tags: {
+      type: [String],
+      enum: [
+        "JavaScript", "TypeScript", "Java",
+        "Python", "C++", "C#", "PHP",
+        "Ruby", "Swift", "Kotlin", "Go",
+      ],
+      required: true,
+    },
     isSaved: {
       type: Boolean,
       default: false,
