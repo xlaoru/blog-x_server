@@ -19,7 +19,16 @@ exports.getBlogs = async (req, res, next) => {
       blog.downVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "downvote");
     });
 
-    res.status(200).json(blogs);
+    const tags = blogs.reduce((acc, blog) => {
+      blog.tags.forEach(tag => {
+        if (!acc.includes(tag)) {
+          acc.push(tag);
+        }
+      });
+      return acc;
+    }, []);
+
+    res.status(200).json({ blogs, tags, message: "Blogs fetched successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
