@@ -50,8 +50,10 @@ exports.sendBlog = async (req, res, next) => {
 exports.getBlogsByTags = async (req, res, next) => {
   const { tags } = req.body;
 
+  const allBlogs = await Blog.find({});
+
   if (tags.length === 0) {
-    return res.status(400).json({ message: "No tags provided" });
+    return res.status(200).json({ blogs: allBlogs, message: "Blogs with tags filtration fetched successfully" });
   }
 
   const user = await User.findById(req.user.id);

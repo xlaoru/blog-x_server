@@ -18,7 +18,7 @@ const {
 
 router.get("/blogs", isAuth, getBlogs);
 
-router.get("/blogs/tags", isAuth, getBlogsByTags);
+router.post("/blogs/tags", isAuth, getBlogsByTags);
 
 router.get('/blogs/saved', isAuth, getSavedBlogs);
 
