@@ -64,10 +64,6 @@ exports.getBlogsByTags = async (req, res, next) => {
 
   const blogs = await Blog.find({ tags: { $all: tags } });
 
-  if (blogs.length === 0) {
-    return res.status(404).json({ message: "No blogs found with the provided tags" });
-  }
-
   blogs.forEach((blog) => {
     blog.isSaved = user.savedBlogs.includes(blog._id);
     blog.isEditable = user.blogs.includes(blog._id);
