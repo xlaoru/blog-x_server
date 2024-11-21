@@ -1,5 +1,0 @@
-sia212007
-
-HeD83CELNDtgkfY6
-
-mongodb+srv://sia212007:<password>@cluster1.4qtdzlb.mongodb.net/

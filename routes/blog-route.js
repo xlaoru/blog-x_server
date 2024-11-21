@@ -6,6 +6,7 @@ const isAuth = require("../middleware/is-auth.js");
 const {
   getBlogs,
   sendBlog,
+  getBlogsByTags,
   updateBlog,
   deleteBlog,
   saveBlog,
@@ -16,6 +17,8 @@ const {
 } = require("../controllers/blog-controller.js");
 
 router.get("/blogs", isAuth, getBlogs);
+
+router.post("/blogs/tags", isAuth, getBlogsByTags);
 
 router.get('/blogs/saved', isAuth, getSavedBlogs);
 

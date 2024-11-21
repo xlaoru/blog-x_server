@@ -35,7 +35,7 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    "mongodb+srv://sia212007:HeD83CELNDtgkfY6@cluster1.4qtdzlb.mongodb.net/Node-API?retryWrites=true&w=majority&appName=Cluster1"
+    process.env.MONGODB_URI
   )
   .then(() => {
     console.log("Connected to DB");

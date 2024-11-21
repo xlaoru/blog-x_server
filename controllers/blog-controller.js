@@ -2,6 +2,8 @@ const Blog = require("../models/blog.model");
 const User = require("../models/user.model");
 const Comment = require("../models/comment.model");
 
+const tagsList = require("../utils/tagsList");
+
 exports.getBlogs = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -19,7 +21,9 @@ exports.getBlogs = async (req, res, next) => {
       blog.downVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "downvote");
     });
 
-    res.status(200).json(blogs);
+    const tags = tagsList
+
+    res.status(200).json({ blogs, tags, message: "Blogs fetched successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -42,6 +46,33 @@ exports.sendBlog = async (req, res, next) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.getBlogsByTags = async (req, res, next) => {
+  const { tags } = req.body;
+
+  const allBlogs = await Blog.find({});
+
+  if (tags.length === 0) {
+    return res.status(200).json({ blogs: allBlogs, message: "Blogs with tags filtration fetched successfully" });
+  }
+
+  const user = await User.findById(req.user.id);
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const blogs = await Blog.find({ tags: { $all: tags } });
+
+  blogs.forEach((blog) => {
+    blog.isSaved = user.savedBlogs.includes(blog._id);
+    blog.isEditable = user.blogs.includes(blog._id);
+    blog.upVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "upvote");
+    blog.downVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "downvote");
+  });
+
+  res.status(200).json({ blogs, message: "Blogs with tags filtration fetched successfully" });
+}
 
 exports.saveBlog = async (req, res, next) => {
   try {
@@ -296,5 +327,3 @@ exports.sendVote = async (req, res, next) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-/* Create GET request with user's UPVOTED and DOWNVOTED blogs response */

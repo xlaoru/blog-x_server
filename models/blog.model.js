@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+const tagsList = require("../utils/tagsList");
+
 const BlogSchema = new mongoose.Schema(
   {
     title: {
@@ -16,6 +18,11 @@ const BlogSchema = new mongoose.Schema(
     },
     code: {
       type: String,
+      required: true,
+    },
+    tags: {
+      type: [String],
+      enum: tagsList,
       required: true,
     },
     isSaved: {
