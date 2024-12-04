@@ -23,11 +23,15 @@ exports.signup = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 7);
+
+    const userCount = await User.countDocuments({});
+    const userRole = userCount === 0 ? "OWNER" : (role || "USER");
+
     const user = new User({
       name,
       email,
       password: hashedPassword,
-      role: role || "USER",
+      role: userRole,
     });
 
     await user.save();
@@ -162,6 +166,71 @@ exports.editUser = async (req, res) => {
 
     return res.json({ user, message: "User updated successfully." });
   } catch (error) {
+    console.log(error);
+    return res.status(500).json({ errors: [{ msg: "User not found." }] });
+  }
+}
+
+exports.setAdmin = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ errors: [{ msg: `User with email ${email} not found.` }] });
+    }
+
+    const candidate = await User.findById(req.body.id);
+
+    if (!candidate) {
+      return res.status(404).json({ errors: [{ msg: "User not found." }] });
+    }
+
+    if (candidate.role === "OWNER") {
+      return res.status(403).json({ errors: [{ msg: "Access denied: cannot change OWNER role." }] });
+    }
+
+    if (candidate.role === "ADMIN") {
+      return res.status(403).json({ errors: [{ msg: "Access denied: user is already an ADMIN." }] });
+    }
+
+    candidate.role = "ADMIN";
+    await candidate.save();
+
+    res.status(200).json({ message: "User role updated successfully." });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ errors: [{ msg: "User not found." }] });
+  }
+}
+
+exports.removeAdmin = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ errors: [{ msg: `User with email ${email} not found.` }] });
+    }
+
+    const candidate = await User.findById(req.body.id);
+
+    if (!candidate) {
+      return res.status(404).json({ errors: [{ msg: "User not found." }] });
+    }
+
+    if (candidate.role === "OWNER") {
+      return res.status(403).json({ errors: [{ msg: "Access denied: cannot change OWNER role." }] });
+    }
+
+    if (candidate.role === "USER") {
+      return res.status(403).json({ errors: [{ msg: "Access denied: user is already a USER." }] });
+    }
+
+    candidate.role = "USER";
+    await candidate.save();
+
+    res.status(200).json({ message: "User role updated successfully." });
+  }
+  catch (error) {
     console.log(error);
     return res.status(500).json({ errors: [{ msg: "User not found." }] });
   }

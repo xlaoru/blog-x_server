@@ -1,7 +1,7 @@
 const Router = require("express");
 const router = new Router();
 
-const isAuth = require("../middleware/is-auth.js");
+const isAuth = require("../middleware/is-auth");
 
 const {
   getBlogs,
