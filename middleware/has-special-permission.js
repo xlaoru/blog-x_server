@@ -5,7 +5,11 @@ module.exports = async function (req, res, next) {
         const user = await User.findById(req.user.id);
         const { id } = req.params
 
-        const hasSpecialPermission = user.blogs.includes(id);
+        if (user.role === "OWNER" || user.role === "ADMIN") {
+            return next();
+        }
+
+        const hasSpecialPermission = user.blogs.includes(id)
 
         if (!hasSpecialPermission) {
             return res.status(403).json({ message: "You are not allowed to manipulate this blog" });
