@@ -113,10 +113,6 @@ exports.getUser = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     const userBlogs = await Blog.find({ _id: { $in: user.blogs } });
     const userBlogsArray = userBlogs.map(blog => {
       const upVote = user.votedBlogs.find(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "upvote");

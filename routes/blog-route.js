@@ -2,6 +2,7 @@ const Router = require("express");
 const router = new Router();
 
 const isAuth = require("../middleware/is-auth");
+const hasSpecialPermission = require("../middleware/has-special-permission");
 
 const {
   getBlogs,
@@ -30,9 +31,9 @@ router.patch("/blogs/:id/vote/:votetype", isAuth, sendVote)
 
 router.patch("/blogs/:id/save", isAuth, saveBlog);
 
-router.put("/blogs/:id", isAuth, updateBlog);
+router.put("/blogs/:id", isAuth, hasSpecialPermission, updateBlog);
 
-router.delete("/blogs/:id", isAuth, deleteBlog);
+router.delete("/blogs/:id", isAuth, hasSpecialPermission, deleteBlog);
 
 router.post("/blogs/:id/comments", isAuth, addComment);
 
