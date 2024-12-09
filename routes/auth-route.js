@@ -2,7 +2,7 @@ const Router = require("express");
 const router = new Router();
 
 const isAuth = require("../middleware/is-auth");
-const checkRole = require("../middleware/check-role");
+const isAllowedFor = require("../middleware/is-allowed-for");
 
 const { signup, login, refreshToken, getUser, editUser, setAdmin, removeAdmin } = require("../controllers/auth-controller");
 
@@ -16,8 +16,8 @@ router.get("/user", isAuth, getUser)
 
 router.put("/user", isAuth, editUser)
 
-router.post("/set-admin", isAuth, checkRole('OWNER'), setAdmin)
+router.post("/set-admin", isAuth, isAllowedFor(["OWNER"]), setAdmin)
 
-router.post("/remove-admin", isAuth, checkRole('OWNER'), removeAdmin)
+router.post("/remove-admin", isAuth, isAllowedFor(["OWNER"]), removeAdmin)
 
 module.exports = router;
