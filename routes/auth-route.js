@@ -15,7 +15,7 @@ router.post("/refresh", refreshToken)
 
 router.get("/user", isAuth, getUser)
 
-router.put("/user", isBanned, isAuth, editUser)
+router.put("/user", isAuth, isBanned, editUser)
 
 router.post("/user/ban/:id", isAuth, isBanned, isAllowedFor(["OWNER", "ADMIN"]), banUser)
 
