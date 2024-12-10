@@ -3,8 +3,9 @@ const router = new Router();
 
 const isAuth = require("../middleware/is-auth");
 const isAllowedFor = require("../middleware/is-allowed-for");
+const isBanned = require("../middleware/is-banned");
 
-const { signup, login, refreshToken, getUser, editUser, setAdmin, removeAdmin } = require("../controllers/auth-controller");
+const { signup, login, refreshToken, getUser, editUser, banUser, unbanUser, setAdmin, removeAdmin } = require("../controllers/auth-controller");
 
 router.post("/signup", signup);
 
@@ -14,10 +15,14 @@ router.post("/refresh", refreshToken)
 
 router.get("/user", isAuth, getUser)
 
-router.put("/user", isAuth, editUser)
+router.put("/user", isBanned, isAuth, editUser)
 
-router.post("/set-admin", isAuth, isAllowedFor(["OWNER"]), setAdmin)
+router.post("/user/ban/:id", isAuth, isBanned, isAllowedFor(["OWNER", "ADMIN"]), banUser)
 
-router.post("/remove-admin", isAuth, isAllowedFor(["OWNER"]), removeAdmin)
+router.post("/user/unban/:id", isAuth, isBanned, isAllowedFor(["OWNER", "ADMIN"]), unbanUser)
+
+router.post("/set-admin/:id", isAuth, isAllowedFor(["OWNER"]), setAdmin)
+
+router.post("/remove-admin/:id", isAuth, isAllowedFor(["OWNER"]), removeAdmin)
 
 module.exports = router;

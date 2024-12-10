@@ -167,15 +167,78 @@ exports.editUser = async (req, res) => {
   }
 }
 
-exports.setAdmin = async (req, res) => {
+exports.banUser = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
+    const { id } = req.params;
 
     if (!user) {
       return res.status(404).json({ errors: [{ msg: `User with email ${email} not found.` }] });
     }
 
-    const candidate = await User.findById(req.body.id);
+    const candidate = await User.findById(id);
+
+    if (!candidate) {
+      return res.status(404).json({ errors: [{ msg: "Candidate not found." }] });
+    }
+
+    if (candidate.role === "OWNER") {
+      return res.status(403).json({ errors: [{ msg: "Access denied: cannot ban OWNER." }] });
+    }
+
+    if (candidate.isBanned) {
+      return res.status(403).json({ errors: [{ msg: "Access denied: user is already banned." }] });
+    }
+
+    candidate.isBanned = true;
+    await candidate.save();
+
+    return res.json({ message: "User banned successfully." });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ errors: [{ msg: "User not found." }] });
+  }
+}
+
+exports.unbanUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const { id } = req.params;
+
+    if (!user) {
+      return res.status(404).json({ errors: [{ msg: `User with email ${email} not found.` }] });
+    }
+
+    const candidate = await User.findById(id);
+
+    if (candidate.role === "OWNER") {
+      return res.status(403).json({ errors: [{ msg: "Access denied: cannot unban OWNER." }] });
+    }
+
+    if (!candidate.isBanned) {
+      return res.status(403).json({ errors: [{ msg: "Access denied: user is not banned." }] });
+    }
+
+    candidate.isBanned = false;
+    await candidate.save();
+
+    return res.json({ message: "User unbanned successfully." });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ errors: [{ msg: "User not found." }] });
+  }
+}
+
+exports.setAdmin = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const { id } = req.params
+
+    if (!user) {
+      return res.status(404).json({ errors: [{ msg: `User with email ${email} not found.` }] });
+    }
+
+    const candidate = await User.findById(id);
 
     if (!candidate) {
       return res.status(404).json({ errors: [{ msg: "User not found." }] });
@@ -202,12 +265,13 @@ exports.setAdmin = async (req, res) => {
 exports.removeAdmin = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
+    const { id } = req.params;
 
     if (!user) {
       return res.status(404).json({ errors: [{ msg: `User with email ${email} not found.` }] });
     }
 
-    const candidate = await User.findById(req.body.id);
+    const candidate = await User.findById(id);
 
     if (!candidate) {
       return res.status(404).json({ errors: [{ msg: "User not found." }] });

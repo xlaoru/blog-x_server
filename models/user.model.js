@@ -29,6 +29,11 @@ const UserSchema = new mongoose.Schema({
     required: true,
     default: "USER",
   },
+  isBanned: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
   blogs: {
     type: [mongoose.Schema.Types.ObjectId],
     default: [],
