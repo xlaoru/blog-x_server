@@ -134,6 +134,11 @@ exports.deleteBlog = async (req, res, next) => {
     }
 
     await User.updateMany(
+      { blogs: id },
+      { $pull: { blogs: id } }
+    );
+
+    await User.updateMany(
       { savedBlogs: id },
       { $pull: { savedBlogs: id } }
     );
