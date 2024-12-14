@@ -29,9 +29,7 @@ exports.getBlogs = async (req, res, next) => {
 exports.sendBlog = async (req, res, next) => {
   try {
     const blog = await Blog.create(req.body);
-    console.log(blog);
     const user = await User.findById(req.user.id);
-    console.log(user);
 
     user.blogs.push(blog._id);
     await user.save();
