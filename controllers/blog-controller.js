@@ -9,9 +9,11 @@ exports.getBlogs = async (req, res, next) => {
     const user = await User.findById(req.user.id);
     const blogs = await Blog.find({});
 
+    const isOwnerAdminEditableCondition = (user.role === "OWNER" || user.role === "ADMIN");
+
     blogs.forEach((blog) => {
       blog.isSaved = user.savedBlogs.includes(blog._id);
-      blog.isEditable = user.blogs.includes(blog._id);
+      blog.isEditable = isOwnerAdminEditableCondition || user.blogs.includes(blog._id);
       blog.upVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "upvote");
       blog.downVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "downvote");
     });
@@ -27,7 +29,9 @@ exports.getBlogs = async (req, res, next) => {
 exports.sendBlog = async (req, res, next) => {
   try {
     const blog = await Blog.create(req.body);
+    console.log(blog);
     const user = await User.findById(req.user.id);
+    console.log(user);
 
     user.blogs.push(blog._id);
     await user.save();
