@@ -61,7 +61,10 @@ exports.login = async (req, res) => {
 
     const tokens = await generateTokens({ id: user._id });
 
+    const isAdminOrOwner = user.role === "ADMIN" || user.role === "OWNER";
+
     const userValidData = {
+      isAdminOrOwner: isAdminOrOwner,
       avatar: user.avatar,
       email: user.email,
       name: user.name,
@@ -106,6 +109,27 @@ exports.refreshToken = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ errors: [{ msg: "Token refresh error." }] });
+  }
+}
+
+exports.getUsers = async (req, res) => {
+  try {
+    const users = await User.find({});
+
+    const usersData = users.map(user => {
+      return {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        isBanned: user.isBanned,
+      }
+    })
+
+    return res.json({ users: usersData, message: "Users fetched successfully." });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ errors: [{ msg: "Users not found." }] });
   }
 }
 

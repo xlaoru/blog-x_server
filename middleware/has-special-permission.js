@@ -12,7 +12,7 @@ module.exports = async function (req, res, next) {
         const hasSpecialPermission = user.blogs.includes(id)
 
         if (!hasSpecialPermission) {
-            return res.status(403).json({ message: "You are not allowed to manipulate this blog" });
+            return res.status(403).json({ message: "You are not allowed to manipulate this blog." });
         }
 
         next();
