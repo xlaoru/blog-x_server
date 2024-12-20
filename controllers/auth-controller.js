@@ -68,6 +68,7 @@ exports.login = async (req, res) => {
       avatar: user.avatar,
       email: user.email,
       name: user.name,
+      role: user.role,
       savedBlogs: user.savedBlogs,
     }
 
@@ -155,10 +156,14 @@ exports.getUser = async (req, res) => {
       }
     })
 
+    const isAdminOrOwner = user.role === "ADMIN" || user.role === "OWNER";
+
     const userData = {
       email: user.email,
       avatar: user.avatar,
       name: user.name,
+      role: user.role,
+      isAdminOrOwner: isAdminOrOwner,
       bio: user.bio,
       blogs: userBlogsArray,
     }
