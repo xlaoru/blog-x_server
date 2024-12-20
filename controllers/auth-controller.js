@@ -115,6 +115,7 @@ exports.refreshToken = async (req, res) => {
 
 exports.getUsers = async (req, res) => {
   try {
+    const user = await User.findById(req.user.id);
     const users = await User.find({});
 
     const usersData = users.map(user => {
@@ -127,7 +128,18 @@ exports.getUsers = async (req, res) => {
       }
     })
 
-    return res.json({ users: usersData, message: "Users fetched successfully." });
+    const isAdminOrOwner = user.role === "ADMIN" || user.role === "OWNER";
+
+    const userValidData = {
+      isAdminOrOwner: isAdminOrOwner,
+      avatar: user.avatar,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      savedBlogs: user.savedBlogs,
+    }
+
+    return res.json({ users: usersData, userValidData, message: "Users fetched successfully." });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ errors: [{ msg: "Users not found." }] });
@@ -159,11 +171,11 @@ exports.getUser = async (req, res) => {
     const isAdminOrOwner = user.role === "ADMIN" || user.role === "OWNER";
 
     const userData = {
+      isAdminOrOwner: isAdminOrOwner,
       email: user.email,
       avatar: user.avatar,
       name: user.name,
       role: user.role,
-      isAdminOrOwner: isAdminOrOwner,
       bio: user.bio,
       blogs: userBlogsArray,
     }
