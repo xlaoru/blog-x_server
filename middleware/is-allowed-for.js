@@ -8,9 +8,10 @@ module.exports = function (roles) {
             }
 
             const user = await User.findById(req.user.id);
+            const isAdminOrOwner = user.role === "ADMIN" || user.role === "OWNER";
 
             if (!roles.includes(user.role)) {
-                return res.status(403).json({ message: `Access denied: requires ${roles.join(", ")} role.` });
+                return res.status(403).json({ message: `Access denied: requires ${roles.join(", ")} role.`,  userRole: user.role, isAdminOrOwner });
             }
 
             next();
