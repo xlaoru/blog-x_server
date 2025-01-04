@@ -7,16 +7,13 @@ const tagsList = require("../utils/tagsList");
 exports.getBlogs = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     const blogs = await Blog.find({});
+
+    const isOwnerAdminEditableCondition = (user.role === "OWNER" || user.role === "ADMIN");
 
     blogs.forEach((blog) => {
       blog.isSaved = user.savedBlogs.includes(blog._id);
-      blog.isEditable = user.blogs.includes(blog._id);
+      blog.isEditable = isOwnerAdminEditableCondition || user.blogs.includes(blog._id);
       blog.upVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "upvote");
       blog.downVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "downvote");
     });
@@ -34,10 +31,6 @@ exports.sendBlog = async (req, res, next) => {
     const blog = await Blog.create(req.body);
     const user = await User.findById(req.user.id);
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     user.blogs.push(blog._id);
     await user.save();
 
@@ -50,13 +43,7 @@ exports.sendBlog = async (req, res, next) => {
 exports.getBlogsByTags = async (req, res, next) => {
   try {
     const { tags } = req.body;
-
     const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     let blogs;
 
     if (!tags || tags.length === 0) {
@@ -81,11 +68,6 @@ exports.getBlogsByTags = async (req, res, next) => {
 exports.saveBlog = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     const { id } = req.params;
     const isBlogSaved = user.savedBlogs.includes(id);
 
@@ -108,11 +90,6 @@ exports.saveBlog = async (req, res, next) => {
 exports.getSavedBlogs = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     const blogs = await Blog.find({ _id: { $in: user.savedBlogs } });
 
     const savedBlogs = blogs.map(blog => ({
@@ -136,26 +113,14 @@ exports.getSavedBlogs = async (req, res, next) => {
 
 exports.updateBlog = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     const { id } = req.params;
-    const isCorrectUser = user.blogs.includes(id);
+    const blog = await Blog.findByIdAndUpdate(id, req.body);
 
-    if (!isCorrectUser) {
-      res.status(404).json({ message: "You are not allowed to update this blog" })
-    } else {
-      const blog = await Blog.findByIdAndUpdate(id, req.body);
-
-      if (!blog) {
-        return res.status(404).json({ message: "Blog not found" });
-      }
-
-      res.status(200).json({ blog, message: "Blog updated successfully" });
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
     }
+
+    res.status(200).json({ blog, message: "Blog updated successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -163,41 +128,35 @@ exports.updateBlog = async (req, res, next) => {
 
 exports.deleteBlog = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     const { id } = req.params;
-    const isCorrectUser = user.blogs.includes(id);
+    const blog = await Blog.findByIdAndDelete(id);
 
-    if (!isCorrectUser) {
-      res.status(404).json({ message: "You are not allowed to delete this blog" });
-    } else {
-      const blog = await Blog.findByIdAndDelete(id);
-
-      if (!blog) {
-        return res.status(404).json({ message: "Blog not found" });
-      }
-
-      await User.updateMany(
-        { savedBlogs: id },
-        { $pull: { savedBlogs: id } }
-      );
-
-      await User.updateMany(
-        { "votedBlogs.blogId": id },
-        { $pull: { votedBlogs: { blogId: id } } }
-      );
-
-      await Comment.deleteMany({ _id: { $in: blog.commentsId } });
-
-      user.blogs = user.blogs.filter((blogId) => blogId.toString() !== id);
-      await user.save();
-
-      res.status(200).json({ message: "Blog deleted successfully" });
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
     }
+
+    await User.updateMany(
+      { blogs: id },
+      { $pull: { blogs: id } }
+    );
+
+    await User.updateMany(
+      { savedBlogs: id },
+      { $pull: { savedBlogs: id } }
+    );
+
+    await User.updateMany(
+      { "votedBlogs.blogId": id },
+      { $pull: { votedBlogs: { blogId: id } } }
+    );
+
+    await Comment.deleteMany({ _id: { $in: blog.commentsId } });
+
+    const user = await User.findById(req.user.id);
+    user.blogs = user.blogs.filter((blogId) => blogId.toString() !== id);
+    await user.save();
+
+    res.status(200).json({ message: "Blog deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -210,11 +169,6 @@ exports.addComment = async (req, res, next) => {
     const userId = req.user.id
 
     const user = await User.findById(userId)
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     const blog = await Blog.findById(id);
 
     if (!blog) {
@@ -240,14 +194,7 @@ exports.addComment = async (req, res, next) => {
 
 exports.getComments = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     const { id } = req.params;
-
     const blog = await Blog.findById(id).populate("commentsId");
 
     if (!blog) {
@@ -275,13 +222,7 @@ exports.getComments = async (req, res, next) => {
 exports.sendVote = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     const { id, votetype } = req.params;
-
     const validVotes = ["upvote", "downvote"];
 
     if (!validVotes.includes(votetype)) {

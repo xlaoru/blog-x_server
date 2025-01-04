@@ -25,7 +25,14 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
+    enum: ["OWNER", "ADMIN", "USER"],
+    required: true,
     default: "USER",
+  },
+  isBanned: {
+    type: Boolean,
+    required: true,
+    default: false,
   },
   blogs: {
     type: [mongoose.Schema.Types.ObjectId],
