@@ -1,5 +1,5 @@
 const tagsList = [
-    "JavaScript", "TypeScript", "Java", "Python", "C++", "C#", "PHP", "Ruby", "Swift", "Kotlin", "Go"
+    "Articles", "Tutorials", "News", "Updates", "Guides", "Opinions"
 ];
 
 module.exports = tagsList;
