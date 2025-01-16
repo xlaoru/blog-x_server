@@ -1,8 +1,7 @@
 const Blog = require("../models/blog.model");
 const User = require("../models/user.model");
 const Comment = require("../models/comment.model");
-
-const tagsList = require("../utils/tagsList");
+const Tag = require("../models/tag.model");
 
 exports.getBlogs = async (req, res, next) => {
   try {
@@ -18,7 +17,8 @@ exports.getBlogs = async (req, res, next) => {
       blog.downVotes.isVoted = user.votedBlogs.some(vote => vote.blogId.toString() === blog._id.toString() && vote.vote === "downvote");
     });
 
-    const tags = tagsList
+    const tagList = await Tag.find({})
+    const tags = tagList.map(tag => tag.name);
 
     res.status(200).json({ blogs, tags, message: "Blogs fetched successfully" });
   } catch (error) {

@@ -1,7 +1,5 @@
 const mongoose = require("mongoose");
 
-const tagsList = require("../utils/tagsList");
-
 const BlogSchema = new mongoose.Schema(
   {
     title: {
@@ -20,11 +18,17 @@ const BlogSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    tags: {
-      type: [String],
-      enum: tagsList,
+    tags: [{
+      type: String,
       required: true,
-    },
+      validate: {
+        validator: async function (tag) {
+          const tagNames = await mongoose.connection.db.collection('tags').distinct('name');
+          return tagNames.includes(tag);
+        },
+        message: props => `Invalid tag: ${props.value}`
+      }
+    }],
     isSaved: {
       type: Boolean,
       default: false,
