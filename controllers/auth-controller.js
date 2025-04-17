@@ -1,3 +1,6 @@
+const events = require("events")
+const emitter = new events.EventEmitter()
+
 const bcrypt = require("bcryptjs");
 const { validationResult } = require("express-validator");
 
@@ -65,6 +68,8 @@ exports.login = async (req, res) => {
 
     const userValidData = {
       isAdminOrOwner: isAdminOrOwner,
+      isBanned: user.isBanned,
+      _id: user._id,
       avatar: user.avatar,
       email: user.email,
       name: user.name,
@@ -81,6 +86,40 @@ exports.login = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ errors: [{ msg: "Login error." }] });
+  }
+};
+
+exports.eventsControl = async (req, res) => {
+  try {
+    res.writeHead(200, {
+      "Connection": "keep-alive",
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache"
+    });
+
+    const send = (message) => {
+      res.write(`data: ${JSON.stringify(message)} \n\n`);
+    };
+
+    const banHandler = (data) => send(data);
+    const unbanHandler = (data) => send(data);
+    const modeHandler = (data) => send(data);
+    const unmodeHandler = (data) => send(data);
+
+    emitter.on("ban", banHandler);
+    emitter.on("unban", unbanHandler);
+    emitter.on("mode", modeHandler);
+    emitter.on("unmode", unmodeHandler);
+
+    req.on("close", () => {
+      emitter.off("ban", banHandler);
+      emitter.off("unban", unbanHandler);
+      emitter.off("mode", modeHandler);
+      emitter.off("unmode", unmodeHandler);
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Events control error." });
   }
 };
 
@@ -132,6 +171,8 @@ exports.getUsers = async (req, res) => {
 
     const userValidData = {
       isAdminOrOwner: isAdminOrOwner,
+      isBanned: user.isBanned,
+      _id: user._id,
       avatar: user.avatar,
       email: user.email,
       name: user.name,
@@ -170,8 +211,10 @@ exports.getUser = async (req, res) => {
 
     const isAdminOrOwner = user.role === "ADMIN" || user.role === "OWNER";
 
-    const userData = {
+    const userValidData = {
       isAdminOrOwner: isAdminOrOwner,
+      isBanned: user.isBanned,
+      _id: user._id,
       email: user.email,
       avatar: user.avatar,
       name: user.name,
@@ -180,7 +223,7 @@ exports.getUser = async (req, res) => {
       blogs: userBlogsArray,
     }
 
-    return res.json({ user: userData, message: "User fetched successfully." });
+    return res.json({ user: userValidData, message: "User fetched successfully." });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "User not found." });
@@ -234,6 +277,17 @@ exports.banUser = async (req, res) => {
     candidate.isBanned = true;
     await candidate.save();
 
+    const isAdminOrOwner = candidate.role === "ADMIN" || candidate.role === "OWNER";
+
+    const userValidData = {
+      isAdminOrOwner: isAdminOrOwner,
+      isBanned: candidate.isBanned,
+      _id: candidate._id,
+      role: candidate.role
+    }
+
+    emitter.emit("ban", JSON.stringify(userValidData))
+
     return res.json({ message: "User banned successfully." });
   } catch (error) {
     console.log(error);
@@ -262,6 +316,17 @@ exports.unbanUser = async (req, res) => {
 
     candidate.isBanned = false;
     await candidate.save();
+
+    const isAdminOrOwner = candidate.role === "ADMIN" || candidate.role === "OWNER";
+
+    const userValidData = {
+      isAdminOrOwner: isAdminOrOwner,
+      isBanned: candidate.isBanned,
+      _id: candidate._id,
+      role: candidate.role
+    }
+
+    emitter.emit("unban", JSON.stringify(userValidData))
 
     return res.json({ message: "User unbanned successfully." });
   } catch (error) {
@@ -296,6 +361,17 @@ exports.setAdmin = async (req, res) => {
     candidate.role = "ADMIN";
     await candidate.save();
 
+    const isAdminOrOwner = candidate.role === "ADMIN" || candidate.role === "OWNER";
+
+    const userValidData = {
+      isAdminOrOwner: isAdminOrOwner,
+      isBanned: candidate.isBanned,
+      _id: candidate._id,
+      role: candidate.role
+    }
+
+    emitter.emit("mode", JSON.stringify(userValidData))
+
     res.status(200).json({ message: "User role updated successfully." });
   } catch (error) {
     console.log(error);
@@ -328,6 +404,17 @@ exports.removeAdmin = async (req, res) => {
 
     candidate.role = "USER";
     await candidate.save();
+
+    const isAdminOrOwner = candidate.role === "ADMIN" || candidate.role === "OWNER";
+
+    const userValidData = {
+      isAdminOrOwner: isAdminOrOwner,
+      isBanned: candidate.isBanned,
+      _id: candidate._id,
+      role: candidate.role
+    }
+
+    emitter.emit("unmode", JSON.stringify(userValidData))
 
     res.status(200).json({ message: "User role updated successfully." });
   }
