@@ -223,7 +223,7 @@ exports.getUser = async (req, res) => {
       blogs: userBlogsArray,
     }
 
-    return res.json({ user: userValidData, message: "User fetched successfully." });
+    return res.json({ userValidData, message: "User fetched successfully." });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "User not found." });
@@ -277,6 +277,8 @@ exports.banUser = async (req, res) => {
     candidate.isBanned = true;
     await candidate.save();
 
+    const users = await User.find({});
+
     const isAdminOrOwner = candidate.role === "ADMIN" || candidate.role === "OWNER";
 
     const userValidData = {
@@ -286,7 +288,17 @@ exports.banUser = async (req, res) => {
       role: candidate.role
     }
 
-    emitter.emit("ban", JSON.stringify(userValidData))
+    const usersValidData = users.map(listUser => {
+      return {
+        isBanned: listUser.isBanned,
+        _id: listUser._id,
+        email: listUser.email,
+        name: listUser.name,
+        role: listUser.role,
+      }
+    })
+
+    emitter.emit("ban", JSON.stringify({ userValidData, usersValidData }))
 
     return res.json({ message: "User banned successfully." });
   } catch (error) {
@@ -317,6 +329,8 @@ exports.unbanUser = async (req, res) => {
     candidate.isBanned = false;
     await candidate.save();
 
+    const users = await User.find({});
+
     const isAdminOrOwner = candidate.role === "ADMIN" || candidate.role === "OWNER";
 
     const userValidData = {
@@ -326,7 +340,17 @@ exports.unbanUser = async (req, res) => {
       role: candidate.role
     }
 
-    emitter.emit("unban", JSON.stringify(userValidData))
+    const usersValidData = users.map(listUser => {
+      return {
+        isBanned: listUser.isBanned,
+        _id: listUser._id,
+        email: listUser.email,
+        name: listUser.name,
+        role: listUser.role,
+      }
+    })
+
+    emitter.emit("unban", JSON.stringify({ userValidData, usersValidData }))
 
     return res.json({ message: "User unbanned successfully." });
   } catch (error) {
@@ -361,6 +385,8 @@ exports.setAdmin = async (req, res) => {
     candidate.role = "ADMIN";
     await candidate.save();
 
+    const users = await User.find({});
+
     const isAdminOrOwner = candidate.role === "ADMIN" || candidate.role === "OWNER";
 
     const userValidData = {
@@ -370,7 +396,17 @@ exports.setAdmin = async (req, res) => {
       role: candidate.role
     }
 
-    emitter.emit("mode", JSON.stringify(userValidData))
+    const usersValidData = users.map(listUser => {
+      return {
+        isBanned: listUser.isBanned,
+        _id: listUser._id,
+        email: listUser.email,
+        name: listUser.name,
+        role: listUser.role,
+      }
+    })
+
+    emitter.emit("mode", JSON.stringify({ userValidData, usersValidData }))
 
     res.status(200).json({ message: "User role updated successfully." });
   } catch (error) {
@@ -405,6 +441,8 @@ exports.removeAdmin = async (req, res) => {
     candidate.role = "USER";
     await candidate.save();
 
+    const users = await User.find({});
+
     const isAdminOrOwner = candidate.role === "ADMIN" || candidate.role === "OWNER";
 
     const userValidData = {
@@ -414,7 +452,17 @@ exports.removeAdmin = async (req, res) => {
       role: candidate.role
     }
 
-    emitter.emit("unmode", JSON.stringify(userValidData))
+    const usersValidData = users.map(listUser => {
+      return {
+        isBanned: listUser.isBanned,
+        _id: listUser._id,
+        email: listUser.email,
+        name: listUser.name,
+        role: listUser.role,
+      }
+    })
+
+    emitter.emit("unmode", JSON.stringify({ userValidData, usersValidData }))
 
     res.status(200).json({ message: "User role updated successfully." });
   }
