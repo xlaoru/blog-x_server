@@ -5,11 +5,13 @@ const isAuth = require("../middleware/is-auth");
 const isAllowedFor = require("../middleware/is-allowed-for");
 const isBanned = require("../middleware/is-banned");
 
-const { signup, login, refreshToken, getUser, getUsers, editUser, banUser, unbanUser, setAdmin, removeAdmin } = require("../controllers/auth-controller");
+const { signup, login, refreshToken, getUser, getUsers, editUser, banUser, unbanUser, setAdmin, removeAdmin, eventsControl } = require("../controllers/auth-controller");
 
 router.post("/signup", signup);
 
 router.post("/login", login);
+
+router.get("/connect", eventsControl)
 
 router.post("/refresh", refreshToken)
 
