@@ -103,19 +103,19 @@ exports.eventsControl = async (req, res) => {
 
     const banHandler = (data) => send(data);
     const unbanHandler = (data) => send(data);
-    const modeHandler = (data) => send(data);
-    const unmodeHandler = (data) => send(data);
+    const setAdminHandler = (data) => send(data);
+    const removeAdminHandler = (data) => send(data);
 
     emitter.on("ban", banHandler);
     emitter.on("unban", unbanHandler);
-    emitter.on("mode", modeHandler);
-    emitter.on("unmode", unmodeHandler);
+    emitter.on("setadmin", setAdminHandler);
+    emitter.on("removeadmin", removeAdminHandler);
 
     req.on("close", () => {
       emitter.off("ban", banHandler);
       emitter.off("unban", unbanHandler);
-      emitter.off("mode", modeHandler);
-      emitter.off("unmode", unmodeHandler);
+      emitter.off("setadmin", setAdminHandler);
+      emitter.off("removeadmin", removeAdminHandler);
     });
   } catch (error) {
     console.log(error);
@@ -406,7 +406,7 @@ exports.setAdmin = async (req, res) => {
       }
     })
 
-    emitter.emit("mode", JSON.stringify({ userValidData, usersValidData }))
+    emitter.emit("setadmin", JSON.stringify({ userValidData, usersValidData }))
 
     res.status(200).json({ message: "User role updated successfully." });
   } catch (error) {
@@ -462,7 +462,7 @@ exports.removeAdmin = async (req, res) => {
       }
     })
 
-    emitter.emit("unmode", JSON.stringify({ userValidData, usersValidData }))
+    emitter.emit("removeadmin", JSON.stringify({ userValidData, usersValidData }))
 
     res.status(200).json({ message: "User role updated successfully." });
   }
