@@ -15,7 +15,7 @@ router.get("/connect", eventsControl)
 
 router.post("/refresh", refreshToken)
 
-router.get("/users", isAuth, isAllowedFor(["OWNER", "ADMIN"]), getUsers)
+router.get("/users", isAuth, isBanned, isAllowedFor(["OWNER", "ADMIN"]), getUsers)
 
 router.get("/user", isAuth, getUser)
 
@@ -25,8 +25,8 @@ router.put("/user/ban/:id", isAuth, isBanned, isAllowedFor(["OWNER", "ADMIN"]), 
 
 router.put("/user/unban/:id", isAuth, isBanned, isAllowedFor(["OWNER", "ADMIN"]), unbanUser)
 
-router.put("/user/set-admin/:id", isAuth, isAllowedFor(["OWNER"]), setAdmin)
+router.put("/user/set-admin/:id", isAuth, isBanned, isAllowedFor(["OWNER"]), setAdmin)
 
-router.put("/user/remove-admin/:id", isAuth, isAllowedFor(["OWNER"]), removeAdmin)
+router.put("/user/remove-admin/:id", isAuth, isBanned, isAllowedFor(["OWNER"]), removeAdmin)
 
 module.exports = router;
