@@ -38,6 +38,17 @@ exports.signup = async (req, res) => {
     });
 
     await user.save();
+
+    const userUpdatePayload = {
+      _id: user._id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      isBanned: user.isBanned
+    };
+
+    emitter.emit("created_user", { type: "created_user", payload: userUpdatePayload });
+
     return res.json({ message: "User created successfully." });
   } catch (error) {
     console.log(error);
@@ -103,9 +114,11 @@ exports.eventsControl = async (req, res) => {
 
     const updataingHandler = (data) => send(data);
 
+    emitter.on("created_user", updataingHandler)
     emitter.on("updated_user", updataingHandler);
 
     req.on("close", () => {
+      emitter.off("created_user", updataingHandler);
       emitter.off("updated_user", updataingHandler);
     });
   } catch (error) {
@@ -279,7 +292,7 @@ exports.banUser = async (req, res) => {
       }
     };
 
-    emitter.emit("updated_user", userUpdatePayload);
+    emitter.emit("updated_user", { type: "updated_user", payload: userUpdatePayload });
 
     return res.json({ message: "User banned successfully." });
   } catch (error) {
@@ -321,7 +334,7 @@ exports.unbanUser = async (req, res) => {
       }
     };
 
-    emitter.emit("updated_user", userUpdatePayload);
+    emitter.emit("updated_user", { type: "updated_user", payload: userUpdatePayload });
 
     return res.json({ message: "User unbanned successfully." });
   } catch (error) {
@@ -367,7 +380,7 @@ exports.setAdmin = async (req, res) => {
       }
     };
 
-    emitter.emit("updated_user", userUpdatePayload);
+    emitter.emit("updated_user", { type: "updated_user", payload: userUpdatePayload });
 
     res.status(200).json({ message: "User role updated successfully." });
   } catch (error) {
@@ -413,7 +426,7 @@ exports.removeAdmin = async (req, res) => {
       }
     };
 
-    emitter.emit("updated_user", userUpdatePayload);
+    emitter.emit("updated_user", { type: "updated_user", payload: userUpdatePayload });
 
     res.status(200).json({ message: "User role updated successfully." });
   }
