@@ -38,6 +38,17 @@ exports.signup = async (req, res) => {
     });
 
     await user.save();
+
+    const userUpdatePayload = {
+      _id: user._id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      isBanned: user.isBanned
+    };
+
+    emitter.emit("created_user", { type: "created_user", payload: userUpdatePayload });
+
     return res.json({ message: "User created successfully." });
   } catch (error) {
     console.log(error);
@@ -101,21 +112,14 @@ exports.eventsControl = async (req, res) => {
       res.write(`data: ${JSON.stringify(message)} \n\n`);
     };
 
-    const banHandler = (data) => send(data);
-    const unbanHandler = (data) => send(data);
-    const setAdminHandler = (data) => send(data);
-    const removeAdminHandler = (data) => send(data);
+    const updataingHandler = (data) => send(data);
 
-    emitter.on("ban", banHandler);
-    emitter.on("unban", unbanHandler);
-    emitter.on("setadmin", setAdminHandler);
-    emitter.on("removeadmin", removeAdminHandler);
+    emitter.on("created_user", updataingHandler)
+    emitter.on("updated_user", updataingHandler);
 
     req.on("close", () => {
-      emitter.off("ban", banHandler);
-      emitter.off("unban", unbanHandler);
-      emitter.off("setadmin", setAdminHandler);
-      emitter.off("removeadmin", removeAdminHandler);
+      emitter.off("created_user", updataingHandler);
+      emitter.off("updated_user", updataingHandler);
     });
   } catch (error) {
     console.log(error);
@@ -277,28 +281,18 @@ exports.banUser = async (req, res) => {
     candidate.isBanned = true;
     await candidate.save();
 
-    const users = await User.find({});
-
     const isAdminOrOwner = candidate.role === "ADMIN" || candidate.role === "OWNER";
 
-    const userValidData = {
-      isAdminOrOwner: isAdminOrOwner,
-      isBanned: candidate.isBanned,
-      _id: candidate._id,
-      role: candidate.role
-    }
-
-    const usersValidData = users.map(listUser => {
-      return {
-        isBanned: listUser.isBanned,
-        _id: listUser._id,
-        email: listUser.email,
-        name: listUser.name,
-        role: listUser.role,
+    const userUpdatePayload = {
+      userId: candidate._id.toString(),
+      changes: {
+        isBanned: candidate.isBanned,
+        isAdminOrOwner: isAdminOrOwner,
+        role: candidate.role
       }
-    })
+    };
 
-    emitter.emit("ban", JSON.stringify({ userValidData, usersValidData }))
+    emitter.emit("updated_user", { type: "updated_user", payload: userUpdatePayload });
 
     return res.json({ message: "User banned successfully." });
   } catch (error) {
@@ -329,28 +323,18 @@ exports.unbanUser = async (req, res) => {
     candidate.isBanned = false;
     await candidate.save();
 
-    const users = await User.find({});
-
     const isAdminOrOwner = candidate.role === "ADMIN" || candidate.role === "OWNER";
 
-    const userValidData = {
-      isAdminOrOwner: isAdminOrOwner,
-      isBanned: candidate.isBanned,
-      _id: candidate._id,
-      role: candidate.role
-    }
-
-    const usersValidData = users.map(listUser => {
-      return {
-        isBanned: listUser.isBanned,
-        _id: listUser._id,
-        email: listUser.email,
-        name: listUser.name,
-        role: listUser.role,
+    const userUpdatePayload = {
+      userId: candidate._id.toString(),
+      changes: {
+        isBanned: candidate.isBanned,
+        isAdminOrOwner: isAdminOrOwner,
+        role: candidate.role
       }
-    })
+    };
 
-    emitter.emit("unban", JSON.stringify({ userValidData, usersValidData }))
+    emitter.emit("updated_user", { type: "updated_user", payload: userUpdatePayload });
 
     return res.json({ message: "User unbanned successfully." });
   } catch (error) {
@@ -385,28 +369,18 @@ exports.setAdmin = async (req, res) => {
     candidate.role = "ADMIN";
     await candidate.save();
 
-    const users = await User.find({});
-
     const isAdminOrOwner = candidate.role === "ADMIN" || candidate.role === "OWNER";
 
-    const userValidData = {
-      isAdminOrOwner: isAdminOrOwner,
-      isBanned: candidate.isBanned,
-      _id: candidate._id,
-      role: candidate.role
-    }
-
-    const usersValidData = users.map(listUser => {
-      return {
-        isBanned: listUser.isBanned,
-        _id: listUser._id,
-        email: listUser.email,
-        name: listUser.name,
-        role: listUser.role,
+    const userUpdatePayload = {
+      userId: candidate._id.toString(),
+      changes: {
+        isBanned: candidate.isBanned,
+        isAdminOrOwner: isAdminOrOwner,
+        role: candidate.role
       }
-    })
+    };
 
-    emitter.emit("setadmin", JSON.stringify({ userValidData, usersValidData }))
+    emitter.emit("updated_user", { type: "updated_user", payload: userUpdatePayload });
 
     res.status(200).json({ message: "User role updated successfully." });
   } catch (error) {
@@ -441,28 +415,18 @@ exports.removeAdmin = async (req, res) => {
     candidate.role = "USER";
     await candidate.save();
 
-    const users = await User.find({});
-
     const isAdminOrOwner = candidate.role === "ADMIN" || candidate.role === "OWNER";
 
-    const userValidData = {
-      isAdminOrOwner: isAdminOrOwner,
-      isBanned: candidate.isBanned,
-      _id: candidate._id,
-      role: candidate.role
-    }
-
-    const usersValidData = users.map(listUser => {
-      return {
-        isBanned: listUser.isBanned,
-        _id: listUser._id,
-        email: listUser.email,
-        name: listUser.name,
-        role: listUser.role,
+    const userUpdatePayload = {
+      userId: candidate._id.toString(),
+      changes: {
+        isBanned: candidate.isBanned,
+        isAdminOrOwner: isAdminOrOwner,
+        role: candidate.role
       }
-    })
+    };
 
-    emitter.emit("removeadmin", JSON.stringify({ userValidData, usersValidData }))
+    emitter.emit("updated_user", { type: "updated_user", payload: userUpdatePayload });
 
     res.status(200).json({ message: "User role updated successfully." });
   }
